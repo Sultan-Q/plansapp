@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>مقارنة المخططات - أ. فراس العسيلان</title>
     
-    <!-- استيراد خط Cairo -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
@@ -17,67 +16,43 @@
             --font-main: 'Cairo', sans-serif;
         }
 
-        /* تنسيقات عامة */
         body, html {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: #ffffff;
             font-family: var(--font-main);
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden; /* منع التمرير العرضي المزعج في الجوال */
+            width: 100%; height: 100%;
+            overflow-x: hidden;
         }
 
-        /* حاوية العرض */
         #viewport {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 15px;
-            box-sizing: border-box;
-            background: #fff;
-            transition: all 0.3s ease;
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh; padding: 15px; box-sizing: border-box;
+            background: #fff; transition: all 0.3s ease;
         }
 
-        /* حاوية الصور المخطط */
-        .plan-container {
-            position: relative;
-            display: inline-block;
-            line-height: 0;
-            max-width: 100%; /* ضمان عدم خروج الصورة عن الشاشة في الجوال */
-        }
+        .plan-container { position: relative; display: inline-block; line-height: 0; max-width: 100%; }
+        #old-plan { display: block; width: 100%; height: auto; max-width: none; }
+        #new-plan { position: absolute; top: 0; right: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
 
-        #old-plan {
-            display: block;
-            width: 100%; /* جعل الصورة متجاوبة */
-            height: auto;
-            max-width: none; 
-        }
+        .is-fit-mode #viewport { height: 100vh; overflow: hidden; align-items: center; padding: 5px; }
+        .is-fit-mode #old-plan { max-width: 100%; max-height: 90vh; width: auto; height: auto; object-fit: contain; }
 
-        #new-plan {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
+        /* نص الإرشاد عند السحب */
+        #slide-hint {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 10001;
             pointer-events: none;
-            z-index: 2;
-        }
-
-        /* وضع احتواء الشاشة (Fit Mode) */
-        .is-fit-mode #viewport {
-            height: 100vh;
-            overflow: hidden;
-            align-items: center;
-            padding: 5px;
-        }
-        .is-fit-mode #old-plan {
-            max-width: 100%;
-            max-height: 90vh;
-            width: auto;
-            height: auto;
-            object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
         /* الجزيرة العائمة - يمين */
@@ -103,16 +78,16 @@
             margin-bottom: 12px;
             width: 280px;
             max-width: 100%;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.3s ease, transform 0.3s ease;
             transform-origin: bottom right;
             text-align: right;
             box-sizing: border-box;
         }
 
-        /* إخفاء القائمة في الجوال بشكل أنيق */
-        .island-menu.hidden {
+        /* حالة السحب - إخفاء القائمة */
+        .island-menu.hidden, .island-menu.user-sliding {
             opacity: 0;
-            transform: scale(0.8) translateY(20px);
+            transform: scale(0.9) translateY(10px);
             pointer-events: none;
         }
 
@@ -120,71 +95,36 @@
         .project-details { font-size: 11px; color: #666; line-height: 1.4; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .label { font-size: 12px; font-weight: 700; color: #888; margin-bottom: 8px; display: block; }
 
-        .control-row { margin-bottom: 15px; }
+        .control-row { margin-bottom: 15px; width: 100%; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
         button {
-            padding: 10px 5px;
-            border: 1px solid #ddd;
-            background: #fff;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            font-family: var(--font-main);
-            font-weight: 600;
-            transition: 0.2s;
-            -webkit-tap-highlight-color: transparent; /* تحسين اللمس في الجوال */
+            padding: 10px 5px; border: 1px solid #ddd; background: #fff;
+            border-radius: 10px; cursor: pointer; font-size: 13px;
+            font-family: var(--font-main); font-weight: 600; transition: 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         button.active { background: #000; color: #fff; border-color: #000; }
-        
-        .export-btn {
-            background: #f8f8f8;
-            grid-column: span 2;
-            margin-top: 4px;
-            border: 1px dashed #bbb;
-            font-size: 12px;
-        }
+        .export-btn { background: #f8f8f8; grid-column: span 2; margin-top: 4px; border: 1px dashed #bbb; font-size: 12px; }
 
-        /* تحسين شكل شريط الشفافية في الجوال */
+        /* تحسين السلايدر ليكون سهل الاستخدام أثناء السحب */
         input[type=range] {
-            width: 100%;
-            height: 30px; /* تكبير منطقة اللمس */
-            margin-top: 5px;
-            cursor: pointer;
-            direction: ltr;
+            width: 100%; height: 50px; margin-top: 5px; cursor: pointer; direction: ltr;
         }
 
         .trigger-btn {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            background: #000;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
+            width: 55px; height: 55px; border-radius: 50%; background: #000;
+            color: #fff; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 22px; display: flex; align-items: center; justify-content: center;
         }
-
-        /* تعديلات خاصة بالشاشات الصغيرة جداً (أصغر من 400px) */
-        @media (max-width: 400px) {
-            .island-menu {
-                width: 250px;
-                padding: 15px;
-            }
-            .client-name { font-size: 16px; }
-            button { font-size: 12px; }
-        }
-
     </style>
 </head>
 <body>
+
+    <!-- نص الإرشاد العلوي -->
+    <div id="slide-hint">حرك للتحكم في الشفافية</div>
 
     <div id="viewport">
         <div class="plan-container" id="plan-box">
@@ -193,13 +133,11 @@
         </div>
     </div>
 
-    <!-- لوحة التحكم العائمة -->
     <div class="island-container">
         <div class="island-menu" id="menu">
             <span class="client-name">أ. فراس عسيلان</span>
             <div class="project-details">
-                مقارنة المخططات - المشروع: الزهراء 8<br>
-                تنفيذ: البراء القحطاني | 0545454549
+                المشروع: الزهراء 8 | تنفيذ: البراء القحطاني | 0545454549
             </div>
 
             <div class="control-row">
@@ -223,9 +161,12 @@
             <div class="control-row" style="margin-bottom: 0;">
                 <div style="display:flex; justify-content: space-between">
                     <span class="label">الشفافية</span>
-                    <span class="label" id="op-val" style="color:var(--accent)">50%</span>
+                    <span id="op-val" style="color:var(--accent); font-weight:bold;">50%</span>
                 </div>
-                <input type="range" id="slider" min="0" max="100" value="50">
+                <input type="range" id="slider" min="0" max="100" value="50" 
+                       onpointerdown="startSliding()" 
+                       onpointerup="stopSliding()" 
+                       onpointercancel="stopSliding()">
             </div>
         </div>
         <button class="trigger-btn" onclick="toggleMenu()" id="main-trigger">✕</button>
@@ -238,80 +179,73 @@
         const opVal = document.getElementById('op-val');
         const menu = document.getElementById('menu');
         const trigger = document.getElementById('main-trigger');
-        const viewport = document.getElementById('viewport');
+        const slideHint = document.getElementById('slide-hint');
         
         let currentPlanNumber = 1;
 
-        // تبديل المخططات
-        function setPlan(num) {
-            currentPlanNumber = num;
-            oldImg.src = `${num}-old.png`;
-            newImg.src = `${num}-new.png`;
-            document.querySelectorAll('.grid-3 button').forEach(b => b.classList.remove('active'));
-            document.getElementById('p'+num).classList.add('active');
-            
-            // إعادة ضبط التمرير للأعلى عند تغيير الطابق
-            window.scrollTo(0,0);
+        // وظائف السحب
+        function startSliding() {
+            menu.classList.add('user-sliding');
+            slideHint.style.opacity = "1";
+            slideHint.style.transform = "translateX(-50%) translateY(10px)";
         }
 
-        // التحكم بالشفافية
+        function stopSliding() {
+            menu.classList.remove('user-sliding');
+            slideHint.style.opacity = "0";
+            slideHint.style.transform = "translateX(-50%) translateY(0px)";
+        }
+
         slider.oninput = function() {
             const v = this.value;
             newImg.style.opacity = v / 100;
             opVal.innerText = v + '%';
         };
 
-        // وضع احتواء الشاشة
+        function setPlan(num) {
+            currentPlanNumber = num;
+            oldImg.src = `${num}-old.png`;
+            newImg.src = `${num}-new.png`;
+            document.querySelectorAll('.grid-3 button').forEach(b => b.classList.remove('active'));
+            document.getElementById('p'+num).classList.add('active');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
         function toggleFit() {
             document.body.classList.toggle('is-fit-mode');
             const btn = document.getElementById('fitBtn');
             const isFit = document.body.classList.contains('is-fit-mode');
             btn.classList.toggle('active', isFit);
             btn.innerText = isFit ? 'الحجم الأصلي' : 'احتواء الشاشة';
-            
-            if(!isFit) window.scrollTo(0,0);
         }
 
-        // ملء الشاشة
         function toggleFS() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => {
-                    alert("ملء الشاشة غير مدعوم في هذا المتصفح");
-                });
+                document.documentElement.requestFullscreen().catch(e => {});
             } else {
                 document.exitFullscreen();
             }
         }
 
-        // إظهار وإخفاء القائمة
         function toggleMenu() {
             menu.classList.toggle('hidden');
             trigger.innerText = menu.classList.contains('hidden') ? '⚙' : '✕';
         }
 
-        // تصدير الصورة
         function exportSnapshot() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             if (!oldImg.complete || !newImg.complete) return alert("يرجى الانتظار...");
-            
             canvas.width = oldImg.naturalWidth;
             canvas.height = oldImg.naturalHeight;
-            
             ctx.drawImage(oldImg, 0, 0);
             ctx.globalAlpha = slider.value / 100;
             ctx.drawImage(newImg, 0, 0);
-            
             const link = document.createElement('a');
             link.download = `مقارنة-طابق-${currentPlanNumber}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         }
-
-        // إغلاق بمفتاح Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "Escape" && !menu.classList.contains('hidden')) toggleMenu();
-        });
     </script>
 </body>
 </html>
