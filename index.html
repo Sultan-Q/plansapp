@@ -24,58 +24,56 @@
             font-family: var(--font-main);
             width: 100%;
             height: 100%;
-            overflow: auto;
         }
 
-        /* منطقة العرض المركزية */
+        /* حاوية العرض */
         #viewport {
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            min-width: 100vw;
             min-height: 100vh;
-            padding: 40px;
+            padding: 20px;
             box-sizing: border-box;
+            background: #fff;
         }
 
-        /* حاوية الصور */
+        /* الحاوية الأساسية للصور */
         .plan-container {
             position: relative;
             display: inline-block;
             line-height: 0;
-            transition: all 0.3s ease;
+            margin: auto;
         }
 
-        /* وضع احتواء الشاشة */
-        .fit-mode {
-            width: 100vw;
-            height: 100vh;
-            display: flex !important;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
-            overflow: hidden;
-            position: fixed;
+        /* ضبط الصور لضمان التطابق */
+        #old-plan {
+            display: block;
+            max-width: none; /* الوضع الافتراضي: الحجم الأصلي */
+            height: auto;
+        }
+
+        #new-plan {
+            position: absolute;
             top: 0;
-            left: 0;
-            z-index: 10;
+            right: 0;
+            width: 100%;  /* يتبع عرض الصورة القديمة دائماً */
+            height: 100%; /* يتبع ارتفاع الصورة القديمة دائماً */
+            pointer-events: none;
+            z-index: 2;
         }
 
-        .fit-mode .plan-container {
-            max-width: 95%;
-            max-height: 95%;
+        /* وضع احتواء الشاشة - يتم تفعيله عبر JS */
+        .is-fit-mode #viewport {
+            height: 100vh;
+            overflow: hidden;
+            align-items: center;
         }
 
-        .fit-mode img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto !important;
-            height: auto !important;
+        .is-fit-mode #old-plan {
+            max-width: 90vw;
+            max-height: 90vh;
             object-fit: contain;
         }
-
-        #old-plan { display: block; z-index: 1; }
-        #new-plan { position: absolute; top: 0; right: 0; z-index: 2; pointer-events: none; }
 
         /* الجزيرة العائمة - يمين */
         .island-container {
@@ -109,29 +107,9 @@
             pointer-events: none;
         }
 
-        .client-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #000;
-            margin-bottom: 2px;
-            display: block;
-        }
-        
-        .project-title {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #888;
-            margin-bottom: 10px;
-            display: block;
-        }
-
+        .client-name { font-size: 20px; font-weight: 700; color: #000; margin-bottom: 2px; display: block; }
+        .project-title { font-size: 13px; color: #666; margin-bottom: 5px; display: block; }
+        .label { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 10px; display: block; }
         .control-row { margin-bottom: 20px; }
         .control-row:last-child { margin-bottom: 0; }
 
@@ -150,21 +128,17 @@
             transition: all 0.2s;
         }
 
-        button.active {
-            background: #000;
-            color: #fff;
-            border-color: #000;
+        button.active { background: #000; color: #fff; border-color: #000; }
+        
+        .export-btn {
+            background: #f0f0f0;
+            grid-column: span 2;
+            margin-top: 4px;
+            border: 1px dashed #999;
         }
 
-        /* شريط التمرير */
-        input[type=range] {
-            width: 100%;
-            margin-top: 10px;
-            cursor: pointer;
-            direction: ltr; /* اتجاه السلايدر التقني */
-        }
+        input[type=range] { width: 100%; margin-top: 10px; cursor: pointer; direction: ltr; }
 
-        /* زر الإغلاق/الفتح */
         .trigger-btn {
             width: 60px;
             height: 60px;
@@ -178,25 +152,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s;
         }
-
-        .trigger-btn:hover { transform: scale(1.05); }
-
     </style>
 </head>
-<body>
+<body class="actual-size-mode">
 
     <div id="viewport">
         <div class="plan-container" id="plan-box">
-            <img id="old-plan" src="1-old.png" alt="المخطط الأصلي">
-            <img id="new-plan" src="1-new.png" alt="المخطط الجديد" style="opacity: 0.5;">
+            <img id="old-plan" src="1-old.png">
+            <img id="new-plan" src="1-new.png" style="opacity: 0.5;">
         </div>
     </div>
 
-    <!-- لوحة التحكم العائمة -->
     <div class="island-container">
-        
         <div class="island-menu" id="menu">
             <span class="client-name">أ. فراس عسيلان</span>
             <span class="project-title">مقارنة المخططات المعمارية</span>
@@ -218,6 +186,7 @@
                 <div class="grid-2">
                     <button onclick="toggleFit()" id="fitBtn">احتواء الشاشة</button>
                     <button onclick="toggleFS()">ملء الشاشة</button>
+                    <button onclick="exportSnapshot()" class="export-btn">تحميل لقطة للمقارنة (PNG)</button>
                 </div>
             </div>
 
@@ -229,9 +198,7 @@
                 <input type="range" id="slider" min="0" max="100" value="50">
             </div>
         </div>
-
         <button class="trigger-btn" onclick="toggleMenu()" id="main-trigger">✕</button>
-
     </div>
 
     <script>
@@ -242,33 +209,35 @@
         const menu = document.getElementById('menu');
         const trigger = document.getElementById('main-trigger');
         const viewport = document.getElementById('viewport');
+        
+        let currentPlanNumber = 1;
 
-        // تبديل المخططات
         function setPlan(num) {
+            currentPlanNumber = num;
             oldImg.src = `${num}-old.png`;
             newImg.src = `${num}-new.png`;
             document.querySelectorAll('.grid-3 button').forEach(b => b.classList.remove('active'));
             document.getElementById('p'+num).classList.add('active');
         }
 
-        // التحكم بالشفافية
         slider.oninput = function() {
             const v = this.value;
             newImg.style.opacity = v / 100;
             opVal.innerText = v + '%';
         };
 
-        // وضع احتواء الشاشة
         function toggleFit() {
-            viewport.classList.toggle('fit-mode');
+            // إضافة الكلاس للجسم الرئيسي للتحكم في الأبعاد
+            document.body.classList.toggle('is-fit-mode');
+            
             const btn = document.getElementById('fitBtn');
-            const isFit = viewport.classList.contains('fit-mode');
+            const isFit = document.body.classList.contains('is-fit-mode');
             btn.classList.toggle('active', isFit);
             btn.innerText = isFit ? 'الحجم الأصلي' : 'احتواء الشاشة';
+            
             if(!isFit) window.scrollTo(0,0);
         }
 
-        // وضع ملء الشاشة
         function toggleFS() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
@@ -277,13 +246,26 @@
             }
         }
 
-        // إظهار وإخفاء القائمة
         function toggleMenu() {
             menu.classList.toggle('hidden');
             trigger.innerText = menu.classList.contains('hidden') ? '⚙' : '✕';
         }
 
-        // إغلاق بمفتاح Escape
+        function exportSnapshot() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!oldImg.complete || !newImg.complete) return alert("يرجى الانتظار...");
+            canvas.width = oldImg.naturalWidth;
+            canvas.height = oldImg.naturalHeight;
+            ctx.drawImage(oldImg, 0, 0);
+            ctx.globalAlpha = slider.value / 100;
+            ctx.drawImage(newImg, 0, 0);
+            const link = document.createElement('a');
+            link.download = `مقارنة-طابق-${currentPlanNumber}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
         document.addEventListener('keydown', (e) => {
             if (e.key === "Escape" && !menu.classList.contains('hidden')) toggleMenu();
         });
