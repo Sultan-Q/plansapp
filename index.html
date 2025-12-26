@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>مقارنة المخططات - أ. فراس العسيلان</title>
     
     <!-- استيراد خط Cairo -->
@@ -13,10 +13,11 @@
     <style>
         :root {
             --accent: #007AFF;
-            --bg-glass: rgba(255, 255, 255, 0.9);
+            --bg-glass: rgba(255, 255, 255, 0.92);
             --font-main: 'Cairo', sans-serif;
         }
 
+        /* تنسيقات عامة */
         body, html {
             margin: 0;
             padding: 0;
@@ -24,6 +25,7 @@
             font-family: var(--font-main);
             width: 100%;
             height: 100%;
+            overflow-x: hidden; /* منع التمرير العرضي المزعج في الجوال */
         }
 
         /* حاوية العرض */
@@ -32,145 +34,173 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
             background: #fff;
+            transition: all 0.3s ease;
         }
 
-        /* الحاوية الأساسية للصور */
+        /* حاوية الصور المخطط */
         .plan-container {
             position: relative;
             display: inline-block;
             line-height: 0;
-            margin: auto;
+            max-width: 100%; /* ضمان عدم خروج الصورة عن الشاشة في الجوال */
         }
 
-        /* ضبط الصور لضمان التطابق */
         #old-plan {
             display: block;
-            max-width: none; /* الوضع الافتراضي: الحجم الأصلي */
+            width: 100%; /* جعل الصورة متجاوبة */
             height: auto;
+            max-width: none; 
         }
 
         #new-plan {
             position: absolute;
             top: 0;
             right: 0;
-            width: 100%;  /* يتبع عرض الصورة القديمة دائماً */
-            height: 100%; /* يتبع ارتفاع الصورة القديمة دائماً */
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 2;
         }
 
-        /* وضع احتواء الشاشة - يتم تفعيله عبر JS */
+        /* وضع احتواء الشاشة (Fit Mode) */
         .is-fit-mode #viewport {
             height: 100vh;
             overflow: hidden;
             align-items: center;
+            padding: 5px;
         }
-
         .is-fit-mode #old-plan {
-            max-width: 90vw;
+            max-width: 100%;
             max-height: 90vh;
+            width: auto;
+            height: auto;
             object-fit: contain;
         }
 
         /* الجزيرة العائمة - يمين */
         .island-container {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 20px;
+            right: 20px;
             z-index: 9999;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: flex-end;
+            max-width: calc(100% - 40px);
         }
 
         .island-menu {
             background: var(--bg-glass);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            padding: 25px;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             border: 1px solid rgba(0,0,0,0.1);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             width: 280px;
+            max-width: 100%;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: bottom right;
             text-align: right;
+            box-sizing: border-box;
         }
 
+        /* إخفاء القائمة في الجوال بشكل أنيق */
         .island-menu.hidden {
             opacity: 0;
             transform: scale(0.8) translateY(20px);
             pointer-events: none;
         }
 
-        .client-name { font-size: 20px; font-weight: 700; color: #000; margin-bottom: 2px; display: block; }
-        .project-title { font-size: 13px; color: #666; margin-bottom: 5px; display: block; }
-        .label { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 10px; display: block; }
-        .control-row { margin-bottom: 20px; }
-        .control-row:last-child { margin-bottom: 0; }
+        .client-name { font-size: 18px; font-weight: 700; color: #000; margin-bottom: 2px; display: block; }
+        .project-details { font-size: 11px; color: #666; line-height: 1.4; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .label { font-size: 12px; font-weight: 700; color: #888; margin-bottom: 8px; display: block; }
 
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .control-row { margin-bottom: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
         button {
-            padding: 8px;
+            padding: 10px 5px;
             border: 1px solid #ddd;
             background: #fff;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-family: var(--font-main);
             font-weight: 600;
-            transition: all 0.2s;
+            transition: 0.2s;
+            -webkit-tap-highlight-color: transparent; /* تحسين اللمس في الجوال */
         }
 
         button.active { background: #000; color: #fff; border-color: #000; }
         
         .export-btn {
-            background: #f0f0f0;
+            background: #f8f8f8;
             grid-column: span 2;
             margin-top: 4px;
-            border: 1px dashed #999;
+            border: 1px dashed #bbb;
+            font-size: 12px;
         }
 
-        input[type=range] { width: 100%; margin-top: 10px; cursor: pointer; direction: ltr; }
+        /* تحسين شكل شريط الشفافية في الجوال */
+        input[type=range] {
+            width: 100%;
+            height: 30px; /* تكبير منطقة اللمس */
+            margin-top: 5px;
+            cursor: pointer;
+            direction: ltr;
+        }
 
         .trigger-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 30px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
             background: #000;
             color: #fff;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.2s;
         }
+
+        /* تعديلات خاصة بالشاشات الصغيرة جداً (أصغر من 400px) */
+        @media (max-width: 400px) {
+            .island-menu {
+                width: 250px;
+                padding: 15px;
+            }
+            .client-name { font-size: 16px; }
+            button { font-size: 12px; }
+        }
+
     </style>
 </head>
-<body class="actual-size-mode">
+<body>
 
     <div id="viewport">
         <div class="plan-container" id="plan-box">
-            <img id="old-plan" src="1-old.png">
-            <img id="new-plan" src="1-new.png" style="opacity: 0.5;">
+            <img id="old-plan" src="1-old.png" alt="المخطط الأصلي">
+            <img id="new-plan" src="1-new.png" alt="المخطط الجديد" style="opacity: 0.5;">
         </div>
     </div>
 
+    <!-- لوحة التحكم العائمة -->
     <div class="island-container">
         <div class="island-menu" id="menu">
             <span class="client-name">أ. فراس عسيلان</span>
-            <span class="project-title">مقارنة المخططات المعمارية</span>
-            <span class="project-title">المشروع: الزهراء 8</span>
-            <span class="project-title">تنفيذ: The BLK - البراء القحطاني</span>
-            <span class="project-title">0545454549</span>
+            <div class="project-details">
+                مقارنة المخططات - المشروع: الزهراء 8<br>
+                تنفيذ: البراء القحطاني | 0545454549
+            </div>
 
             <div class="control-row">
                 <span class="label">اختر الطابق</span>
@@ -190,7 +220,7 @@
                 </div>
             </div>
 
-            <div class="control-row">
+            <div class="control-row" style="margin-bottom: 0;">
                 <div style="display:flex; justify-content: space-between">
                     <span class="label">الشفافية</span>
                     <span class="label" id="op-val" style="color:var(--accent)">50%</span>
@@ -212,24 +242,28 @@
         
         let currentPlanNumber = 1;
 
+        // تبديل المخططات
         function setPlan(num) {
             currentPlanNumber = num;
             oldImg.src = `${num}-old.png`;
             newImg.src = `${num}-new.png`;
             document.querySelectorAll('.grid-3 button').forEach(b => b.classList.remove('active'));
             document.getElementById('p'+num).classList.add('active');
+            
+            // إعادة ضبط التمرير للأعلى عند تغيير الطابق
+            window.scrollTo(0,0);
         }
 
+        // التحكم بالشفافية
         slider.oninput = function() {
             const v = this.value;
             newImg.style.opacity = v / 100;
             opVal.innerText = v + '%';
         };
 
+        // وضع احتواء الشاشة
         function toggleFit() {
-            // إضافة الكلاس للجسم الرئيسي للتحكم في الأبعاد
             document.body.classList.toggle('is-fit-mode');
-            
             const btn = document.getElementById('fitBtn');
             const isFit = document.body.classList.contains('is-fit-mode');
             btn.classList.toggle('active', isFit);
@@ -238,34 +272,43 @@
             if(!isFit) window.scrollTo(0,0);
         }
 
+        // ملء الشاشة
         function toggleFS() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
+                document.documentElement.requestFullscreen().catch(e => {
+                    alert("ملء الشاشة غير مدعوم في هذا المتصفح");
+                });
             } else {
                 document.exitFullscreen();
             }
         }
 
+        // إظهار وإخفاء القائمة
         function toggleMenu() {
             menu.classList.toggle('hidden');
             trigger.innerText = menu.classList.contains('hidden') ? '⚙' : '✕';
         }
 
+        // تصدير الصورة
         function exportSnapshot() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             if (!oldImg.complete || !newImg.complete) return alert("يرجى الانتظار...");
+            
             canvas.width = oldImg.naturalWidth;
             canvas.height = oldImg.naturalHeight;
+            
             ctx.drawImage(oldImg, 0, 0);
             ctx.globalAlpha = slider.value / 100;
             ctx.drawImage(newImg, 0, 0);
+            
             const link = document.createElement('a');
             link.download = `مقارنة-طابق-${currentPlanNumber}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         }
 
+        // إغلاق بمفتاح Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === "Escape" && !menu.classList.contains('hidden')) toggleMenu();
         });
